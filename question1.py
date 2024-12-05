@@ -10,59 +10,69 @@
 
 # Weather Forecast Application Script
 
-def fetch_weather_data(city):
-    weather_data = {
-        "New York": {"temperature": 70, "condition": "Sunny", "humidity": 50, "city": "New York"},
-        "London": {"temperature": 60, "condition": "Cloudy", "humidity": 65, "city": "London"},
-        "Tokyo": {"temperature": 75, "condition": "Rainy", "humidity": 70, "city": "Tokyo"}
-    }
-    normalized_city = city.strip().lower()
-    for city_name in weather_data.keys():
-        if city_name.lower() == normalized_city:
-            return weather_data[city_name]
-    return None
+class WeatherData:
+    def __init__(self):
+        self.weather_data = {
+            "New York": {"temperature": 70, "condition": "Sunny", "humidity": 50},
+            "London": {"temperature": 60, "condition": "Cloudy", "humidity": 65},
+            "Tokyo": {"temperature": 75, "condition": "Rainy", "humidity": 70}
+        }
 
-def format_detailed_weather_report(city, data):
-    if not data:
-        return f"Weather data not available for {city}"
-    temperature = data["temperature"]
-    condition = data["condition"]
-    humidity = data["humidity"]
-    return f"Weather in {city}: {temperature} degrees, {condition}, Humidity: {humidity}%"
+    def fetch(self, city_name):
+        city_name_normalized = self.normalize_city_name(city_name)
+        return self.weather_data.get(city_name_normalized)
 
-def format_basic_weather_report(city, data):
-    if not data:
-        return f"Weather data not available for {city}"
-    temperature = data["temperature"]
-    return f"Weather in {city}: {temperature} degrees"
+    def normalize_city_name(self, city_name):
+        return city_name.strip().title()
 
-def get_detailed_weather_forecast(city):
-    weather_data = fetch_weather_data(city)
-    return format_detailed_weather_report(city, weather_data)
 
-def get_basic_weather_forecast(city):
-    weather_data = fetch_weather_data(city)
-    return format_basic_weather_report(city, weather_data)
+class WeatherReport:
+    def format_basic(self, city_name, data):
+        if not data:
+            return f"Weather data not available for {city_name}."
+        temperature = data["temperature"]
+        return f"Weather in {city_name}: {temperature}°C"
 
-def request_weather_details():
-    city = input("\nEnter the city to get weather details or 'exit' to quit  ").lower()
-    if city.lower() == 'exit':
-        return None, None
-    forecast_type = input("Do you want a detailed forecast? (yes/no):  ").lower()
-    return city, forecast_type == 'yes'
+    def format_detailed(self, city_name, data):
+        if not data:
+            return f"Weather data not available for {city_name}."
+        temperature = data["temperature"]
+        condition = data["condition"]
+        humidity = data["humidity"]
+        return f"Weather in {city_name}: {temperature}°C, {condition}, Humidity: {humidity}%"
 
-def main():
-    while True:
-        city, detailed = request_weather_details()
 
-        if city is None:
-            print("Exiting the application.")
-            break
+class WeatherApp:
+    def __init__(self):
+        self.weather_data = WeatherData()
+        self.weather_report = WeatherReport()
 
+    def run(self):
+        while True:
+            city_name, detailed = self.user_input()
+
+            if city_name == "exit":
+                print("Exiting the application.")
+                break
+
+            weather_data = self.weather_data.fetch(city_name)
+            report = self.generate_report(city_name, weather_data, detailed)
+            print(report)
+
+    def user_input(self):
+        city_name = input("\nEnter the city to get weather details or 'exit' to quit: ").strip().lower()
+        if city_name == "exit":
+            return city_name, None
+
+        forecast_type = input("Do you want a detailed forecast? (yes/no): ").lower()
+        return city_name, forecast_type == "yes"
+
+    def generate_report(self, city_name, weather_data, detailed):
         if detailed:
-            print(get_detailed_weather_forecast(city))
-        else:
-            print(get_basic_weather_forecast(city))
+            return self.weather_report.format_detailed(city_name, weather_data)
+        return self.weather_report.format_basic(city_name, weather_data)
+
 
 if __name__ == "__main__":
-    main()
+    app = WeatherApp()
+    app.run()
